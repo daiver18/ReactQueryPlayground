@@ -1,6 +1,6 @@
 'use client'
 import { Query, QueryKey, useQueryClient } from '@tanstack/react-query'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { intersection, isEqual } from 'underscore'
 
 type useQueryStateProps = {

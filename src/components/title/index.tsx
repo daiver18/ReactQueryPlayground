@@ -1,17 +1,15 @@
 'use client'
 import { QueryKey, useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
-import { queryKey, queryKey2 } from '../list'
 import { isEmpty } from 'underscore'
 import useQueryState from '@/hooks/useQueryState'
+import { queryKeys as queryKeysFactory } from '@/utils/queryKeysFactory'
 
 function Title() {
   const [queryKeys, setQueryKeys] = useState<{ [key in string]: QueryKey }>({})
-  const postsQueryState = useQueryState({ queryKey })
-  const commentsQueryState = useQueryState({ queryKey: queryKey2 })
+  const postsQueryState = useQueryState({ queryKey: queryKeysFactory.posts })
+  const commentsQueryState = useQueryState({ queryKey: queryKeysFactory.comments })
   const queryClient = useQueryClient()
-
-  console.log(commentsQueryState)
 
   if (postsQueryState?.state.status === "error" && !queryKeys[postsQueryState.queryKey.toString()]) {
     setQueryKeys(prev => ({ ...prev, [postsQueryState.queryKey.toString()]: postsQueryState.queryKey }))
