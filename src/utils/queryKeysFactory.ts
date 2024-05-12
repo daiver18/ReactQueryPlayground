@@ -1,4 +1,5 @@
 export const queryKeys = {
-  posts: ["post"],
+  posts: ["posts"],
+  post: (id: number) => [...queryKeys.posts, id],
   comments: ["comments"]
 }

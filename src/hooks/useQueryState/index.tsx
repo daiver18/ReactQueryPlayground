@@ -1,63 +1,74 @@
 'use client'
 import { Query, QueryKey, useQueryClient, matchQuery, QueryObserver, QueryObserverResult, QueryCacheNotifyEvent, QueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 type useQueryStateProps = {
   queryKey: QueryKey,
-  exact?: boolean
+  exact: true
+  callback?: (query: QueryObserverResult<unknown, Error>) => void
+} | {
+  queryKey: QueryKey,
+  exact: false
+  callback?: (query: Query<any, any, any, any>) => void;
 }
 
 const typesOmitted: Array<QueryCacheNotifyEvent["type"]> = ["observerAdded", "observerOptionsUpdated", "observerRemoved", "observerResultsUpdated"]
 
-const addObserver = <T,>(queryClient: QueryClient, queryKey: useQueryStateProps["queryKey"], action: T) => {
-  const observer = new QueryObserver(queryClient, { queryKey })
-  const unsubscribe = observer.subscribe((result) => {
-    console.log("from observer", result)
-    action(result)
-  })
-  return { observer, unsubscribe }
-}
 
-function useQueryState({ queryKey, exact = false }: useQueryStateProps) {
+function useQueryState({ queryKey, exact, callback }: useQueryStateProps) {
   const [query, setQuery] = useState<null | QueryObserverResult>(null)
+  const observer = useRef<QueryObserver | null>(null)
+
   const queryClient = useQueryClient()
-  useEffect(() => {
-    let observer: QueryObserver
-    const found = queryClient.getQueryCache().find({ queryKey, exact: true })
-    if (!!found) {
-      observer = new QueryObserver(queryClient, { queryKey })
-      const unsubscribe = observer.subscribe((result) => {
-        console.log("from observer", result)
+
+  const addObserver = useCallback(
+    () => { observer.current = new QueryObserver(queryClient, { queryKey }) },
+    [queryClient, queryKey],
+  )
+  const handleSubObserver = useCallback(
+    () => {
+      if (!observer.current) return null
+      return observer.current.subscribe((result) => {
+        if (exact === true) callback?.(result)
         setQuery(result)
       })
-      return () => {
-        console.log("called unsubscribe")
-        unsubscribe()
-      }
+    },
+    [exact, callback],
+  )
+
+
+  useEffect(() => {
+    const found = queryClient.getQueryCache().find({ queryKey, exact })
+    console.log("change queryKey", queryKey)
+    if (!!found && exact) {
+      addObserver()
+      const unsubscribe = handleSubObserver()
+      return () => { unsubscribe?.() }
     } else {
       const unsubscribeCache = queryClient.getQueryCache().subscribe((event) => {
+        if (typesOmitted.includes(event.type)) return
+
         const match = matchQuery({ queryKey, exact }, event.query)
-        if (match && !typesOmitted.includes(event.type) && !observer) {
-          console.log("called first if")
-          observer = new QueryObserver(queryClient, { queryKey })
-          const unsubscribe = observer.subscribe((result) => {
-            console.log("from queryCatch in observer", result)
-            setQuery(result)
-          })
+
+        // predicate: (query) => {
+        //   console.log("predicate", query)
+        //   return true
+        // }
+
+        if (match && !observer.current && exact) {
+          addObserver()
+          const unsubscribe = handleSubObserver()
           unsubscribeCache()
-          return () => {
-            console.log("called unsubscribe")
-            unsubscribe()
-          }
+          return () => { unsubscribe?.() }
         }
-        if (match && event.type === "removed") { observer.destroy() }
-        console.log("called getQueryCache sub")
+
+        if (match && exact === false) {
+          callback?.(event.query)
+        }
       })
-      return () => {
-        unsubscribeCache()
-      }
+      return () => { unsubscribeCache() }
     }
-  }, [queryKey])
+  }, [queryKey, addObserver, handleSubObserver, queryClient])
   return query
 }
 export default useQueryState

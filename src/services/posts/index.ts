@@ -26,3 +26,16 @@ export const useFetchPosts = (options?: CustomQueryOptions<Res>): UseQueryResult
     ...rest,
   })
 }
+export const useFetchPost = (id: number, options?: CustomQueryOptions<Res>): UseQueryResult<Res> => {
+  const { onSuccess, onError, onSettled, ...rest } = options || {}
+  return useQuery<Res>({
+    queryKey: queryKeys.post(id),
+    queryFn: getPosts,
+    meta: {
+      onSuccess: (data) => options?.onSuccess?.(data),
+      onError,
+      onSettled
+    },
+    ...rest,
+  })
+}

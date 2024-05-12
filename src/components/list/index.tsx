@@ -3,7 +3,8 @@ import { useFetchComments } from '@/services/comments'
 import { useFetchPosts } from '@/services/posts'
 import React, { useEffect, useState } from 'react'
 import { isEmpty } from 'underscore'
-import Comp from './comps'
+import Posts from './comps/posts'
+import Post from './comps/post'
 
 function List() {
   const [renderDelayedComponent, setRenderDelayedComponent] = useState(false);
@@ -32,7 +33,8 @@ function List() {
 
   return (
     <div>
-      {renderDelayedComponent && <Comp />}
+      {renderDelayedComponent && <Posts />}
+      {renderDelayedComponent && <Post id={1} />}
       <button onClick={() => setRenderDelayedComponent(!renderDelayedComponent)} title='hidden/show' >hidden/show</button>
     </div>
   );
