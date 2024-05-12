@@ -1,11 +1,12 @@
 "use client"
 import { QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import React from "react"
-import { Res } from '@/services/posts'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
 interface Meta {
-  onSuccess?: <T extends Res>(data: T) => void
-  onError?: (data: any) => void
-  onSettled?: (data: any) => void
+  onSuccess?: (data: unknown) => void
+  onError?: (error: unknown) => void
+  onSettled?: (data: unknown, error: unknown) => void
 }
 
 declare module '@tanstack/react-query' {
@@ -25,7 +26,7 @@ const ReactQueryProvider = ({ children }: { children: React.ReactNode }) => {
     queryCache: new QueryCache({
       onSuccess: (data, query) => {
         if (query.meta?.onSuccess) {
-          query.meta?.onSuccess?.(data as any)
+          query.meta?.onSuccess?.(data)
         }
       },
       onError: (error, query) => {
@@ -35,7 +36,7 @@ const ReactQueryProvider = ({ children }: { children: React.ReactNode }) => {
       },
       onSettled: (data, error, query) => {
         if (query.meta?.onSettled) {
-          query.meta?.onSettled?.(data)
+          query.meta?.onSettled?.(data, error)
         }
       }
     })
@@ -44,6 +45,7 @@ const ReactQueryProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   )
 }

@@ -3,12 +3,11 @@ import Title from '@/components/title'
 import List from '@/components/list'
 import Link from 'next/link'
 
-export default function Home() {
+export default function Other() {
   return (
     <div>
-      <Title />
-      <List />
-      <Link href={"/other"}>other</Link>
+      Other
+      <Link href={"/home"}>Back</Link>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { queryKeys } from "@/utils/queryKeysFactory";
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, UseQueryResult } from "@tanstack/react-query"
 import { CustomQueryOptions } from "../types";
 
 export type Res = Array<{ id: number }>
@@ -13,12 +13,16 @@ const getPosts = async (): Promise<Res> => {
   }).catch((error) => { })
 }
 
-export const useFetchPosts = (options?: CustomQueryOptions<Res>) => {
+export const useFetchPosts = (options?: CustomQueryOptions<Res>): UseQueryResult<Res> => {
   const { onSuccess, onError, onSettled, ...rest } = options || {}
-  return useQuery({
+  return useQuery<Res>({
     queryKey: queryKeys.posts,
     queryFn: getPosts,
-    meta: { onSuccess, onError, onSettled },
+    meta: {
+      onSuccess: (data) => options?.onSuccess?.(data),
+      onError,
+      onSettled
+    },
     ...rest,
   })
 }

@@ -1,5 +1,5 @@
 import { queryKeys } from "@/utils/queryKeysFactory";
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, UseQueryResult } from "@tanstack/react-query"
 import { CustomQueryOptions } from "../types";
 
 type Res = Array<{ id: number }>
@@ -13,6 +13,6 @@ const getComments = async (): Promise<Res> => {
   }).catch((error) => { })
 }
 
-export const useFetchComments = (options?: CustomQueryOptions<Res>) => {
+export const useFetchComments = (options?: CustomQueryOptions<Res>): UseQueryResult<Res> => {
   return useQuery<Res>({ queryKey: queryKeys.comments, queryFn: getComments, ...options })
 }
